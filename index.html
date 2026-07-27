@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HOW TO: $10M — Empire Builder & Cash Rewards RPG</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --gold:#f5c842; --gold-light:#ffe57a; --gold-dark:#c89b00;
+  --bg:#06060c; --card:#11111d; --card2:#18182a;
+  --border:rgba(245,200,66,0.22);
+  --text:#f5f5f8; --muted:#8e8ea6;
+  --green:#22d374; --red:#ff4f6a; --purple:#a855f7; --blue:#3b82f6;
+  --glow-gold:0 0 35px rgba(245,200,66,0.35);
+  --glow-green:0 0 30px rgba(34,211,116,0.35);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+#bg-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+#app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:20px 16px 90px}
+
+/* HUD Top Bar */
+#hud{
+  position:sticky;top:12px;z-index:100;
+  background:rgba(17,17,29,0.92);backdrop-filter:blur(18px);
+  border:1px solid var(--border);border-radius:99px;
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 12px 40px rgba(0,0,0,0.6);margin-bottom:28px;
+}
+.hud-brand{display:flex;align-items:center;gap:12px}
+.hud-badge{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#000;font-weight:900;font-size:13px;padding:5px 12px;border-radius:8px;letter-spacing:1px}
+.hud-title{font-size:17px;font-weight:800;letter-spacing:-0.5px}
+
+.hud-center{display:flex;align-items:center;gap:14px}
+.timer-display{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:800;color:var(--gold);min-width:70px;text-align:center}
+.timer-display.danger{color:var(--red);animation:pulseRed 0.8s infinite}
+@keyframes pulseRed{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.6;transform:scale(1.08)}}
+
+.hud-stats{display:flex;align-items:center;gap:14px}
+.hud-stat-box{background:var(--card2);border:1px solid var(--border);border-radius:99px;padding:6px 16px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.hud-stat-val{color:var(--gold);font-family:'JetBrains Mono',monospace}
+
+.cash-anim{color:var(--green)!important;font-weight:900;animation:cashPop 0.6s ease}
+@keyframes cashPop{0%{transform:scale(1)}50%{transform:scale(1.3);color:#a3e635}100%{transform:scale(1)}}
+
+/* Navigation Tabs */
+.nav-tabs{display:flex;gap:10px;margin-bottom:24px;justify-content:center;flex-wrap:wrap}
+.tab-btn{
+  background:var(--card2);border:1px solid var(--border);color:var(--muted);
+  font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;
+  padding:10px 24px;border-radius:99px;cursor:pointer;transition:all 0.2s;
+}
+.tab-btn:hover,.tab-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,0.08)}
+
+/* Game Screens & Cards */
+.game-screen{display:none;animation:slideUp 0.45s cubic-bezier(0.16,1,0.3,1)}
+.game-screen.active{display:block}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Hero Stage */
+.hero-box{
+  background:linear-gradient(150deg,rgba(24,24,42,0.92),rgba(12,12,22,0.96));
+  border:1px solid var(--border);border-radius:28px;
+  padding:50px 36px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:var(--glow-gold);
+}
+.hero-badge{display:inline-block;background:rgba(245,200,66,0.12);border:1px solid var(--border);border-radius:99px;padding:6px 22px;font-size:12px;font-weight:800;color:var(--gold);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:20px}
+.hero-h1{font-size:clamp(42px,8vw,78px);font-weight:900;line-height:1.02;letter-spacing:-2.5px;margin-bottom:18px;background:linear-gradient(135deg,#fff,#ffe57a,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-desc{font-size:18px;color:var(--muted);max-width:640px;margin:0 auto 36px;line-height:1.65}
+
+.levels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:36px;text-align:left}
+.level-card{
+  background:var(--card);border:1px solid rgba(255,255,255,0.08);border-radius:18px;
+  padding:22px;position:relative;overflow:hidden;transition:all 0.3s ease;
+}
+.level-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+.level-tag{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;display:block}
+.level-name{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px}
+.level-desc{font-size:13px;color:var(--muted);line-height:1.5}
+
+/* Buttons */
+.btn-game{
+  background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));
+  color:#110d00;font-family:'Outfit',sans-serif;font-size:18px;font-weight:900;
+  padding:18px 52px;border-radius:99px;border:none;cursor:pointer;
+  box-shadow:0 0 35px rgba(245,200,66,0.45);transition:all 0.25s ease;
+  display:inline-flex;align-items:center;gap:10px;
+}
+.btn-game:hover{transform:scale(1.04) translateY(-2px);box-shadow:0 0 60px rgba(245,200,66,0.65)}
+.btn-game:active{transform:scale(0.97)}
+
+.btn-nav{
+  background:var(--card2);border:1px solid var(--border);color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
+  padding:14px 28px;border-radius:99px;cursor:pointer;transition:all 0.2s ease;
+}
+.btn-nav:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
+
+/* Challenge Container */
+.challenge-card{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;
+  padding:36px;margin-bottom:24px;position:relative;overflow:hidden;
+}
+.challenge-hdr{margin-bottom:28px}
+.challenge-lvl{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;display:block}
+.challenge-title{font-size:32px;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px}
+.challenge-sub{font-size:15px;color:var(--muted);line-height:1.6}
+
+/* Quest Options */
+.quest-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.quest-opt{
+  background:var(--card2);border:2px solid rgba(255,255,255,0.06);border-radius:16px;
+  padding:20px;cursor:pointer;transition:all 0.25s ease;position:relative;
+}
+.quest-opt:hover{border-color:var(--gold);transform:translateY(-3px);background:rgba(245,200,66,0.04)}
+.quest-opt.selected{border-color:var(--gold);background:rgba(245,200,66,0.08);box-shadow:var(--glow-gold)}
+.quest-opt.correct{border-color:var(--green);background:rgba(34,211,116,0.12);box-shadow:var(--glow-green)}
+.quest-opt.wrong{border-color:var(--red);background:rgba(255,79,106,0.12);animation:shake 0.4s ease}
+
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+.quest-opt-title{font-size:17px;font-weight:800;color:#fff;margin-bottom:6px}
+.quest-opt-desc{font-size:14px;color:var(--muted);line-height:1.5}
+.cash-reward-badge{display:inline-block;background:rgba(34,211,116,0.15);color:var(--green);border:1px solid var(--green);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;padding:2px 10px;border-radius:99px;margin-top:8px}
+
+/* Push-Button Lab Component */
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+.lab-module-card{
+  background:var(--card2);border:2px solid rgba(255,255,255,0.08);border-radius:16px;
+  padding:18px;cursor:pointer;transition:all 0.25s;text-align:center;
+}
+.lab-module-card:hover{border-color:var(--gold);transform:scale(1.02)}
+.lab-module-card.active{border-color:var(--green);background:rgba(34,211,116,0.1);box-shadow:var(--glow-green)}
+.lab-icon{font-size:32px;margin-bottom:8px}
+.lab-name{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px}
+.lab-cash{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:800;color:var(--green)}
+
+/* Interactive Sliders */
+.sim-panel{background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:24px;margin-bottom:24px}
+.sim-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px}
+.sim-label{font-size:15px;font-weight:700}
+.sim-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--gold)}
+input[type=range]{flex:1;accent-color:var(--gold);height:7px;border-radius:99px;cursor:pointer}
+
+.sim-hero-output{
+  background:linear-gradient(135deg,rgba(245,200,66,0.1),rgba(200,155,0,0.05));
+  border:2px dashed var(--gold);border-radius:16px;
+  padding:24px;text-align:center;margin-top:20px;
+}
+.sim-big-num{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:900;color:var(--gold);line-height:1;margin-bottom:6px}
+.sim-sub-text{font-size:14px;color:var(--muted)}
+
+/* Offer Studio Inputs */
+.studio-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.field-group{display:flex;flex-direction:column;gap:8px}
+.field-label{font-size:14px;font-weight:800;color:var(--gold-light)}
+.field-input,.field-select,.field-textarea{
+  background:var(--card2);border:1px solid var(--border);color:#fff;
+  font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;
+  padding:12px 16px;border-radius:12px;outline:none;
+}
+.field-input:focus,.field-select:focus,.field-textarea:focus{border-color:var(--gold)}
+.field-textarea{height:90px;resize:vertical}
+
+.pitch-card{
+  background:linear-gradient(145deg,rgba(245,200,66,0.08),rgba(18,18,30,0.95));
+  border:2px solid var(--gold);border-radius:20px;padding:28px;margin-top:24px;
+}
+.pitch-title{font-size:24px;font-weight:900;color:var(--gold);margin-bottom:12px}
+.pitch-row{font-size:15px;line-height:1.7;margin-bottom:8px;color:#fff}
+.pitch-row strong{color:var(--gold-light)}
+
+/* Toast Notifications */
+#toast-box{position:fixed;bottom:24px;left:24px;z-index:200;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{
+  background:rgba(18,18,30,0.95);backdrop-filter:blur(14px);
+  border:1px solid var(--gold);border-radius:14px;padding:14px 22px;
+  color:#fff;font-weight:700;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,0.8);
+  animation:toastIn 0.35s ease forwards;display:flex;align-items:center;gap:10px;
+}
+.toast.cash-toast{border-color:var(--green);color:#a3e635;box-shadow:var(--glow-green)}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px) scale(0.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.achievement-banner{
+  background:rgba(34,211,116,0.1);border:1px solid var(--green);border-radius:14px;
+  padding:16px 20px;font-size:14px;color:#a3e635;line-height:1.6;margin-bottom:24px;
+}
+.achievement-banner.gold{background:rgba(245,200,66,0.1);border-color:var(--border);color:var(--gold-light)}
+
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:32px}
+
+/* Daemon Chatbot */
+#daemon-btn{
+  position:fixed;bottom:24px;right:24px;z-index:300;
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+  border:2px solid #fff;box-shadow:0 0 35px rgba(245,200,66,0.6);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:28px;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+#daemon-btn:hover{transform:scale(1.1) rotate(10deg);box-shadow:0 0 50px rgba(245,200,66,0.8)}
+
+#daemon-chat-window{
+  position:fixed;bottom:100px;right:24px;z-index:300;
+  width:380px;height:520px;border-radius:24px;
+  background:rgba(15,15,26,0.96);backdrop-filter:blur(20px);
+  border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,0.8);
+  display:none;flex-direction:column;overflow:hidden;
+  animation:daemonIn 0.35s ease forwards;
+}
+@keyframes daemonIn{from{opacity:0;transform:translateY(30px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.daemon-hdr{
+  background:linear-gradient(135deg,var(--card2),rgba(245,200,66,0.1));
+  border-bottom:1px solid var(--border);padding:16px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.daemon-hdr-title{font-size:16px;font-weight:800;color:var(--gold);display:flex;align-items:center;gap:8px}
+.daemon-close-btn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer}
+
+.daemon-messages{flex:1;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+.msg-bubble{max-width:85%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.55}
+.msg-daemon{background:var(--card2);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;align-self:flex-start}
+.msg-user{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:#110d00;font-weight:700;border-bottom-right-radius:4px;align-self:flex-end}
+
+.daemon-chips{padding:8px 16px;display:flex;gap:6px;overflow-x:auto;white-space:nowrap;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.2)}
+.chip-btn{background:var(--card);border:1px solid var(--border);color:var(--gold-light);font-size:11px;font-weight:700;padding:5px 12px;border-radius:99px;cursor:pointer}
+
+.daemon-input-row{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--card)}
+.daemon-input{flex:1;background:var(--card2);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;padding:10px 14px;border-radius:99px;outline:none}
+.daemon-send-btn{background:var(--gold);color:#000;border:none;width:36px;height:36px;border-radius:50%;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+@media(max-width:768px){
+  .studio-grid{grid-template-columns:1fr}
+  .hero-box{padding:32px 20px}
+  .challenge-card{padding:20px}
+  #hud{padding:10px 16px}
+  #daemon-chat-window{width:calc(100vw - 32px);right:16px;bottom:90px;height:480px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div id="toast-box"></div>
+
+<!-- 🤖 DAEMON CHATBOT -->
+<div id="daemon-btn" onclick="toggleDaemonChat()" title="Ask Will's AI Daemon">🤖</div>
+<div id="daemon-chat-window">
+  <div class="daemon-hdr">
+    <div class="daemon-hdr-title">🤖 Will's $10M AI Daemon</div>
+    <button class="daemon-close-btn" onclick="toggleDaemonChat()">✕</button>
+  </div>
+  <div class="daemon-messages" id="daemon-msg-container">
+    <div class="msg-bubble msg-daemon">
+      👋 Welcome Entrepreneur! Ask me anything about niches, push-button offers, VSL funnels, or diagnostic sales calls!
+    </div>
+  </div>
+  <div class="daemon-chips">
+    <button class="chip-btn" onclick="sendChip('What is a bleeding neck problem?')">🩸 Bleeding Neck</button>
+    <button class="chip-btn" onclick="sendChip('How to write an I Help statement?')">🎯 I Help Formula</button>
+    <button class="chip-btn" onclick="sendChip('What are the 4 Ws of CEO freedom?')">👑 4 Ws</button>
+    <button class="chip-btn" onclick="sendChip('How to handle objections?')">🔥 Objections</button>
+  </div>
+  <div class="daemon-input-row">
+    <input type="text" class="daemon-input" id="daemon-in" placeholder="Ask daemon mentor..." onkeypress="handleDaemonKey(event)"/>
+    <button class="daemon-send-btn" onclick="sendDaemonMsg()">➔</button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- HUD TOP BAR -->
+  <div id="hud">
+    <div class="hud-brand">
+      <span class="hud-badge">LEVEL <span id="hud-lvl">1</span>/5</span>
+      <span class="hud-title">$10M Empire Builder</span>
+    </div>
+    <div class="hud-center">
+      <span style="font-size:12px;color:var(--muted);font-weight:700">TIMER</span>
+      <div class="timer-display" id="hud-timer">20:00</div>
+    </div>
+    <div class="hud-stats">
+      <div class="hud-stat-box">⭐ <span class="hud-stat-val" id="hud-score">0</span> <span style="font-size:11px;color:var(--muted)">PTS</span></div>
+      <div class="hud-stat-box">💰 <span class="hud-stat-val" id="hud-cash">$0</span></div>
+    </div>
+  </div>
+
+  <!-- NAVIGATION TABS -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" id="tab-game" onclick="switchMainTab('game')">🎮 20-Min RPG Game</button>
+    <button class="tab-btn" id="tab-studio" onclick="switchMainTab('studio')">✍️ Write Your Offer Studio</button>
+    <button class="tab-btn" id="tab-examples" onclick="switchMainTab('examples')">📚 Real-World Offer Library</button>
+  </div>
+
+  <!-- 🎮 SECTION 1: RPG GAME SCREENS -->
+  <div id="main-game-wrap">
+
+    <div id="screen-0" class="game-screen active">
+      <div class="hero-box">
+        <span class="hero-badge">🎮 Interactive Business RPG Challenge</span>
+        <h1 class="hero-h1">HOW TO: $10M</h1>
+        <p class="hero-desc">Build your $10,000,000 e-learning & consulting empire in 20 minutes! Complete strategic quests, architect high-ticket offers, win cash rewards on every challenge, and conquer diagnostic sales call battles.</p>
+
+        <div class="levels-grid">
+          <div class="level-card">
+            <span class="level-tag">Quest 1</span>
+            <div class="level-name">🎯 Niche & Push-Button Laboratory</div>
+            <div class="level-desc">Build done-for-you modules & earn up to +$150,000 cash!</div>
+          </div>
+          <div class="level-card">
+            <span class="level-tag">Quest 2</span>
+            <div class="level-name">💎 Value Offer Escalator</div>
+            <div class="level-desc">Scale from $50 Word docs to $5k courses & $35k masterminds.</div>
+          </div>
+          <div class="level-card">
+            <span class="level-tag">Quest 3</span>
+            <div class="level-name">⚡ Acquisition & Funnel Arena</div>
+            <div class="level-desc">Simulate ad spend, opt-in rates, survey filters & net cash ROI.</div>
+          </div>
+          <div class="level-card">
+            <span class="level-tag">Quest 4</span>
+            <div class="level-name">🔥 Diagnostic Call Boss Battle</div>
+            <div class="level-desc">Handle real prospect objections using Will's exact closing script.</div>
+          </div>
+          <div class="level-card">
+            <span class="level-tag">Quest 5</span>
+            <div class="level-name">📈 Scaling, 16-Person Team & Exit</div>
+            <div class="level-desc">Build your team, conquer the 4 Ws of freedom & execute an 8-figure exit.</div>
+          </div>
+        </div>
+
+        <button class="btn-game" onclick="startGame()">⚔️ Start 20-Min Challenge</button>
+      </div>
+    </div>
+
+    <!-- LEVEL 1: NICHE & PUSH-BUTTON LABORATORY -->
+    <div id="screen-1" class="game-screen">
+      <div class="challenge-card">
+        <div class="challenge-hdr">
+          <span class="challenge-lvl">Quest 1 • Chapter 2</span>
+          <h2 class="challenge-title">🎯 Niche Forge & Push-Button Laboratory</h2>
+          <p class="challenge-sub">"The riches are in the niches." Select your high-value target client, then assemble done-for-you push-button modules to win instant cash rewards!</p>
+        </div>
+
+        <div class="achievement-banner gold">
+          💡 <strong>Bleeding Neck Concept:</strong> If a person has a knife in their neck, they don't ask for a discount. Solve a problem so severe that price becomes irrelevant!
+        </div>
+
+        <h3 style="font-size:16px;color:var(--gold);margin-bottom:14px">Challenge 1.1: Choose Your Core Niche & Target Client</h3>
+        <div class="quest-options" id="l1-q1-options">
+          <div class="quest-opt" onclick="selectL1Niche(1, 100, 'Losing Traders', 50000)">
+            <div class="quest-opt-title">📈 Financial Market Traders</div>
+            <div class="quest-opt-desc">Help losing traders become profitable using mechanical rule-based strategies.</div>
+            <div class="cash-reward-badge">💵 CASH REWARD: +$50,000</div>
+          </div>
+          <div class="quest-opt" onclick="selectL1Niche(2, 90, 'Private Dentists', 35000)">
+            <div class="quest-opt-title">🩺 Private Dentists & Doctors</div>
+            <div class="quest-opt-desc">Run Facebook lead generation ads to fill high-ticket patient appointments.</div>
+            <div class="cash-reward-badge">💵 CASH REWARD: +$35,000</div>
+          </div>
+          <div class="quest-opt" onclick="selectL1Niche(3, 85, 'Underpaid Barbers', 25000)">
+            <div class="quest-opt-title">💈 Underpaid Barbers</div>
+            <div class="quest-opt-desc">Teach barbers to build a star-cut personal brand & charge $100+/haircut.</div>
+            <div class="cash-reward-badge">💵 CASH REWARD: +$25,000</div>
+          </div>
+        </div>
+
+        <!-- CREATIVE PUSH-BUTTON LABORATORY -->
+        <h3 style="font-size:16px;color:var(--gold);margin-bottom:14px;margin-top:28px">Challenge 1.2: 🧪 Push-Button Solution Laboratory (Select Done-For-You Modules)</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Alex Becker taught Will: remove all customer friction! Click the done-for-you modules below to add them to your offer & collect instant cash bonuses:</p>
+
+        <div class="lab-grid">
+          <div class="lab-module-card" id="lab-mod-1" onclick="toggleLabModule(1, 50000, 'Automated Prompt & Software Vault')">
+            <div class="lab-icon">🤖</div>
+            <div class="lab-name">AI Prompt & Software Vault</div>
+            <div class="lab-cash">+$50,000 CASH</div>
+          </div>
+          <div class="lab-module-card" id="lab-mod-2" onclick="toggleLabModule(2, 35000, 'Plug-and-Play Ad Scripts')">
+            <div class="lab-icon">📑</div>
+            <div class="lab-name">Plug-and-Play Ad Scripts</div>
+            <div class="lab-cash">+$35,000 CASH</div>
+          </div>
+          <div class="lab-module-card" id="lab-mod-3" onclick="toggleLabModule(3, 25000, 'Done-For-You Funnel Templates')">
+            <div class="lab-icon">🎨</div>
+            <div class="lab-name">Done-For-You Funnels</div>
+            <div class="lab-cash">+$25,000 CASH</div>
+          </div>
+          <div class="lab-module-card" id="lab-mod-4" onclick="toggleLabModule(4, 40000, '1-on-1 Emergency Hotline')">
+            <div class="lab-icon">👥</div>
+            <div class="lab-name">1-on-1 Hotline & Group Calls</div>
+            <div class="lab-cash">+$40,000 CASH</div>
+          </div>
+        </div>
+
+        <div class="sim-hero-output" style="margin-top:20px;padding:16px">
+          <div style="font-size:14px;color:var(--gold-light);font-weight:700">LABORATORY TOTAL VALUE UNLOCKED:</div>
+          <div class="sim-big-num" id="lab-total-val" style="font-size:32px">$0 CASH</div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn-nav" onclick="showScreen('screen-0')">← Main Menu</button>
+          <button class="btn-game" style="font-size:16px;padding:14px 36px" onclick="completeLevel1()">Collect Quest 1 Cash Rewards →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL 2 -->
+    <div id="screen-2" class="game-screen">
+      <div class="challenge-card">
+        <div class="challenge-hdr">
+          <span class="challenge-lvl">Quest 2 • Chapters 1, 7 & Case Studies</span>
+          <h2 class="challenge-title">💎 The Value Escalator & Cash Machine</h2>
+          <p class="challenge-sub">Scale your offer ladder from a $50 document to a $5,000 coaching program and a $35,000 mastermind.</p>
+        </div>
+
+        <div class="sim-panel">
+          <h3 style="font-size:16px;color:var(--gold);margin-bottom:20px">🧮 Interactive Revenue & Cash-Flow Machine</h3>
+          <div class="sim-row">
+            <span class="sim-label">Offer Price Point:</span>
+            <span class="sim-value" id="l2-val-price">$5,000</span>
+            <input type="range" id="l2-rng-price" min="500" max="35000" step="500" value="5000" oninput="updateL2Sim()"/>
+          </div>
+          <div class="sim-row">
+            <span class="sim-label">Monthly New Clients Acquired:</span>
+            <span class="sim-value" id="l2-val-clients">10 clients</span>
+            <input type="range" id="l2-rng-clients" min="1" max="50" step="1" value="10" oninput="updateL2Sim()"/>
+          </div>
+          <div class="sim-row">
+            <span class="sim-label">1-Day Re-Offer Cash Infusion (Existing Leads):</span>
+            <span class="sim-value" id="l2-val-reoffer">$40,000</span>
+            <input type="range" id="l2-rng-reoffer" min="0" max="100000" step="5000" value="40000" oninput="updateL2Sim()"/>
+          </div>
+          <div class="sim-hero-output">
+            <div class="sim-big-num" id="l2-out-monthly">$50,000 / mo</div>
+            <div class="sim-sub-text" id="l2-out-annual">Annualized Revenue: $600,000 | Year 1 Total: $640,000 (Incl. Re-offer)</div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="btn-nav" onclick="showScreen('screen-1')">← Quest 1</button>
+          <button class="btn-game" style="font-size:16px;padding:14px 36px" onclick="completeLevel2()">Collect Revenue & Enter Arena →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL 3 -->
+    <div id="screen-3" class="game-screen">
+      <div class="challenge-card">
+        <div class="challenge-hdr">
+          <span class="challenge-lvl">Quest 3 • Chapters 3, 4 & 8</span>
+          <h2 class="challenge-title">⚡ Prospect Acquisition & Funnel Math Arena</h2>
+          <p class="challenge-sub">Balance paid ad traffic, VSL opt-in rates, and survey qualification math to maximize ROAS.</p>
+        </div>
+        <div class="sim-panel">
+          <div class="sim-row">
+            <span class="sim-label">Monthly Ad Spend ($):</span>
+            <span class="sim-value" id="l3-val-spend">$3,000</span>
+            <input type="range" id="l3-rng-spend" min="1000" max="20000" step="500" value="3000" oninput="updateL3Sim()"/>
+          </div>
+          <div class="sim-row">
+            <span class="sim-label">Cost Per Booked Call ($):</span>
+            <span class="sim-value" id="l3-val-costpercall">$120</span>
+            <input type="range" id="l3-rng-costpercall" min="50" max="300" step="10" value="120" oninput="updateL3Sim()"/>
+          </div>
+          <div class="sim-row">
+            <span class="sim-label">Sales Close Rate (%):</span>
+            <span class="sim-value" id="l3-val-closerate">20%</span>
+            <input type="range" id="l3-rng-closerate" min="10" max="40" step="2" value="20" oninput="updateL3Sim()"/>
+          </div>
+          <div class="sim-hero-output">
+            <div class="sim-big-num" id="l3-out-roas">8.33x ROAS</div>
+            <div class="sim-sub-text" id="l3-out-details">Calls Booked: 25 | Closed Clients: 5 | Spend: $3,000 | Gross Revenue: $25,000</div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn-nav" onclick="showScreen('screen-2')">← Quest 2</button>
+          <button class="btn-game" style="font-size:16px;padding:14px 36px" onclick="completeLevel3()">Collect Ad Net Cash →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL 4 -->
+    <div id="screen-4" class="game-screen">
+      <div class="challenge-card">
+        <div class="challenge-hdr">
+          <span class="challenge-lvl">Quest 4 • Chapters 5 & 6</span>
+          <h2 class="challenge-title">🔥 Diagnostic Closing Call Boss Battle</h2>
+          <p class="challenge-sub">A prospect says: "Will, $5,000 is just too expensive right now..." Choose the correct response!</p>
+        </div>
+        <div class="sim-panel" style="border-color:var(--purple)">
+          <div style="font-size:13px;color:var(--purple);font-weight:800;letter-spacing:2px;margin-bottom:8px">PROSPECT SAYS:</div>
+          <div style="font-size:20px;font-weight:800;color:#fff;font-style:italic">"Will, $5,000 is just too expensive for me right now. Can I sleep on it and call you next week?"</div>
+        </div>
+        <div class="quest-options" id="l4-options">
+          <div class="quest-opt" onclick="answerL4Battle(1, 100, 50000)">
+            <div class="quest-opt-title">🎯 The Frame Re-Anchor (Bleeding Neck)</div>
+            <div class="quest-opt-desc">"I understand. But earlier you mentioned losing $2,000 every month trading without a plan. If you wait another month, that's $2,000 lost anyway. Let's fix the root cause today."</div>
+            <div class="cash-reward-badge">💵 CASH REWARD: +$50,000 (CLOSED 10 DEALS)</div>
+          </div>
+          <div class="quest-opt" onclick="answerL4Battle(2, 20, 0)">
+            <div class="quest-opt-title">❌ Desperate Discounting</div>
+            <div class="quest-opt-desc">"Oh, okay... how about I give you a 50% discount and you pay $2,500 instead?"</div>
+            <div class="cash-reward-badge" style="color:var(--red);border-color:var(--red);background:rgba(255,79,106,0.1)">$0 REWARD</div>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn-nav" onclick="showScreen('screen-3')">← Quest 3</button>
+          <button class="btn-game" style="font-size:16px;padding:14px 36px" id="btn-l4-next" onclick="completeLevel4()" style="display:none">Collect Sales Cash →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL 5 -->
+    <div id="screen-5" class="game-screen">
+      <div class="challenge-card">
+        <div class="challenge-hdr">
+          <span class="challenge-lvl">Quest 5 • Chapters 10–16</span>
+          <h2 class="challenge-title">📈 16-Person Team Scaling & 8-Figure Exit</h2>
+          <p class="challenge-sub">Hire your executive team, automate operations, achieve the 4 Ws of freedom, and execute an 8-figure business exit!</p>
+        </div>
+        <div class="achievement-banner gold">
+          🏆 <strong>Final Exit Jackpot:</strong> Will scaled to 16 staff members and $4.5M/year before exiting. He generated <strong>$16,400,000</strong> in total sales!
+        </div>
+        <div class="nav-row">
+          <button class="btn-nav" onclick="showScreen('screen-4')">← Quest 4</button>
+          <button class="btn-game" style="background:linear-gradient(135deg,var(--green),#16a34a);color:#000" onclick="completeGame()">🏆 Execute $16.4M Exit Jackpot →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEVEL FINAL -->
+    <div id="screen-final" class="game-screen">
+      <div class="hero-box">
+        <span class="hero-badge">🏆 Challenge Complete</span>
+        <h1 class="hero-h1" id="final-rank">8-FIGURE EMPIRE CEO</h1>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:52px;font-weight:900;color:var(--gold);margin-bottom:12px" id="final-score">500 / 500 PTS</div>
+        <div style="font-size:24px;font-weight:800;color:var(--green);margin-bottom:28px" id="final-cash-out">Total Cash Generated: $16,400,000</div>
+        <button class="btn-game" onclick="restartGame()">🔄 Replay 20-Min Challenge</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ✍️ SECTION 2: WRITE YOUR OFFER STUDIO -->
+  <div id="main-studio-wrap" style="display:none">
+    <div class="challenge-card">
+      <div class="challenge-hdr">
+        <span class="challenge-lvl">Offer Architect Studio</span>
+        <h2 class="challenge-title">✍️ Craft Your High-Ticket Offer Pitch</h2>
+        <p class="challenge-sub">Fill out the fields below using Will's exact framework to generate a high-converting $2,500–$10,000 offer pitch card!</p>
+      </div>
+
+      <div class="studio-grid">
+        <div class="field-group">
+          <span class="field-label">1. Target Audience / Niche (WHO):</span>
+          <input type="text" class="field-input" id="st-who" value="Losing Stock & Forex Traders"/>
+        </div>
+        <div class="field-group">
+          <span class="field-label">2. Desired Transformation (WHAT):</span>
+          <input type="text" class="field-input" id="st-what" value="Become consistently profitable"/>
+        </div>
+        <div class="field-group">
+          <span class="field-label">3. Unique Mechanism / Strategy (HOW):</span>
+          <input type="text" class="field-input" id="st-how" value="Using rule-based mechanical strategies"/>
+        </div>
+        <div class="field-group">
+          <span class="field-label">4. Offer Pricing Tier:</span>
+          <select class="field-select" id="st-price">
+            <option value="$2,500">$2,500 (Online Course / Base Coaching)</option>
+            <option value="$5,000" selected>$5,000 (Core 1-on-1 & Group Hybrid Program)</option>
+            <option value="$10,000">$10,000 (Done-With-You Executive Offer)</option>
+            <option value="$35,000">$35,000 (VIP High-End Mastermind)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:24px">
+        <span class="field-label">5. Severe "Bleeding Neck" Problem Addressed:</span>
+        <textarea class="field-textarea" id="st-pain">Wiping out trading accounts, emotional stress, lack of risk management, and gambling without an edge.</textarea>
+      </div>
+
+      <div class="field-group" style="margin-bottom:24px">
+        <span class="field-label">6. Push-Button Solution Components (Done-For-You Assets):</span>
+        <textarea class="field-textarea" id="st-push">Rule-based trading checklist, weekly live trade teardowns, 1-on-1 strategy audit, & private community access.</textarea>
+      </div>
+
+      <button class="btn-game" style="font-size:16px;padding:14px 40px" onclick="generateOfferPitch()">✨ Generate Offer Pitch Card</button>
+
+      <div class="pitch-card" id="pitch-output-box" style="display:none">
+        <div class="pitch-title" id="pitch-out-title">🔥 High-Ticket Offer Blueprint</div>
+        <div class="pitch-row"><strong>I Help Statement:</strong> <span id="pitch-out-ihelp"></span></div>
+        <div class="pitch-row"><strong>Target Price Point:</strong> <span id="pitch-out-price" style="color:var(--gold);font-weight:900"></span></div>
+        <div class="pitch-row"><strong>Bleeding Neck Addressed:</strong> <span id="pitch-out-pain"></span></div>
+        <div class="pitch-row"><strong>Push-Button Components:</strong> <span id="pitch-out-push"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📚 SECTION 3: REAL-WORLD OFFER LIBRARY -->
+  <div id="main-examples-wrap" style="display:none">
+    <div class="challenge-card">
+      <div class="challenge-hdr">
+        <span class="challenge-lvl">Real-World Case Studies</span>
+        <h2 class="challenge-title">📚 Real Offers From "How To: $10M"</h2>
+        <p class="challenge-sub">Explore actual 6-figure and 7-figure offers built by Will and his top-performing clients straight from the book!</p>
+      </div>
+
+      <div class="quest-options">
+        <div class="quest-opt">
+          <div class="quest-opt-title" style="color:var(--gold)">📈 1. Will's Trading Education Offer</div>
+          <div class="quest-opt-desc">
+            <strong>Target:</strong> Losing Stock & Forex Traders<br>
+            <strong>Offer:</strong> Mechanical Strategy Course + Coaching<br>
+            <strong>Price Ladder:</strong> $50 Word Doc $\rightarrow$ $500 Course $\rightarrow$ $5,000 Coaching<br>
+            <strong>Results:</strong> $16,400,000 total sales before business exit!
+          </div>
+        </div>
+
+        <div class="quest-opt">
+          <div class="quest-opt-title" style="color:var(--gold)">🩺 2. Lead Gen Agency & Mastermind (Private Dentists)</div>
+          <div class="quest-opt-desc">
+            <strong>Target:</strong> Private Dentists & Health Professionals<br>
+            <strong>Offer:</strong> FB Lead Ads + Front-Desk Call Scripts<br>
+            <strong>Price:</strong> $3,000/mo Retainer $\rightarrow$ $5,000 Coaching Program<br>
+            <strong>Results:</strong> Made $35,000 in first 2 months teaching the agency model!
+          </div>
+        </div>
+
+        <div class="quest-opt">
+          <div class="quest-opt-title" style="color:var(--gold)">💈 3. Barber Personal Brand Blueprint</div>
+          <div class="quest-opt-desc">
+            <strong>Target:</strong> Underpaid Barbers ($15/cut)<br>
+            <strong>Offer:</strong> Star-Cut Methodology & High-Profile Client Script<br>
+            <strong>Price:</strong> $2,500 Online Course<br>
+            <strong>Results:</strong> Allowed barbers to land celebrity clients & charge $100+/cut.
+          </div>
+        </div>
+
+        <div class="quest-opt">
+          <div class="quest-opt-title" style="color:var(--gold)">🏋️ 4. Dubai Fitness Mastermind</div>
+          <div class="quest-opt-desc">
+            <strong>Target:</strong> High-net-worth professionals seeking 6-pack abs<br>
+            <strong>Offer:</strong> Mastermind + VIP Fitness Retreats<br>
+            <strong>Price:</strong> $9/mo App $\rightarrow$ $5,000 Course $\rightarrow$ $35,000 Mastermind<br>
+            <strong>Results:</strong> Added +$500,000/year to his existing income!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* Canvas Background Animation */
+(function(){
+  var canvas = document.getElementById('bg-canvas');
+  var ctx = canvas.getContext('2d');
+  var w, h, particles = [];
+
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  for(var i=0; i<60; i++){
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 3 + 1,
+      sy: Math.random() * 0.8 + 0.2,
+      o: Math.random() * 0.5 + 0.2
+    });
+  }
+
+  function render(){
+    ctx.clearRect(0,0,w,h);
+    for(var i=0; i<particles.length; i++){
+      var p = particles[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(245,200,66,' + p.o + ')';
+      ctx.fill();
+      p.y -= p.sy;
+      if(p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+    }
+    requestAnimationFrame(render);
+  }
+  render();
+})();
+
+/* Main Tab Switching */
+function switchMainTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+
+  document.getElementById('main-game-wrap').style.display = (tab === 'game') ? 'block' : 'none';
+  document.getElementById('main-studio-wrap').style.display = (tab === 'studio') ? 'block' : 'none';
+  document.getElementById('main-examples-wrap').style.display = (tab === 'examples') ? 'block' : 'none';
+}
+
+/* Offer Studio Generator */
+function generateOfferPitch() {
+  var who = document.getElementById('st-who').value;
+  var what = document.getElementById('st-what').value;
+  var how = document.getElementById('st-how').value;
+  var price = document.getElementById('st-price').value;
+  var pain = document.getElementById('st-pain').value;
+  var push = document.getElementById('st-push').value;
+
+  document.getElementById('pitch-out-ihelp').textContent = '"I help ' + who + ' to ' + what + ' by ' + how + '."';
+  document.getElementById('pitch-out-price').textContent = price;
+  document.getElementById('pitch-out-pain').textContent = pain;
+  document.getElementById('pitch-out-push').textContent = push;
+
+  document.getElementById('pitch-output-box').style.display = 'block';
+  showToast('✨ High-Ticket Offer Pitch Generated!');
+}
+
+/* Game Variables */
+var currentLevel = 0;
+var score = 0;
+var cash = 0;
+var timerSecs = 1200; // 20 MINUTES
+var timerInterval = null;
+var timerRunning = false;
+
+function showToast(msg, isCash) {
+  var box = document.getElementById('toast-box');
+  var t = document.createElement('div');
+  t.className = 'toast' + (isCash ? ' cash-toast' : '');
+  t.innerHTML = (isCash ? '💵 ' : '⭐ ') + msg;
+  box.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 3500);
+}
+
+function addCash(amount, reason) {
+  cash += amount;
+  updateHUD();
+  var hudEl = document.getElementById('hud-cash');
+  hudEl.classList.add('cash-anim');
+  setTimeout(function(){ hudEl.classList.remove('cash-anim'); }, 600);
+  showToast('+' + '$' + amount.toLocaleString() + ' CASH REWARD! (' + reason + ')', true);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.game-screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateHUD() {
+  document.getElementById('hud-lvl').textContent = currentLevel;
+  document.getElementById('hud-score').textContent = score;
+  document.getElementById('hud-cash').textContent = '$' + cash.toLocaleString();
+}
+
+function startTimer() {
+  if(timerRunning) return;
+  timerRunning = true;
+  timerInterval = setInterval(function(){
+    if(timerSecs > 0) {
+      timerSecs--;
+      var m = Math.floor(timerSecs / 60);
+      var s = timerSecs % 60;
+      var display = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      var el = document.getElementById('hud-timer');
+      el.textContent = display;
+      if(timerSecs <= 180) { el.classList.add('danger'); }
+    } else {
+      clearInterval(timerInterval);
+      completeGame();
+    }
+  }, 1000);
+}
+
+function startGame() {
+  currentLevel = 1;
+  updateHUD();
+  startTimer();
+  showScreen('screen-1');
+  showToast('Quest 1 Started: Niche & Push-Button Lab!');
+}
+
+/* Level 1 Mechanics */
+var l1NicheSelected = false;
+var l1LabTotalCash = 0;
+var l1SelectedModules = {};
+
+function selectL1Niche(id, pts, name, reward) {
+  document.querySelectorAll('#l1-q1-options .quest-opt').forEach(function(o){ o.classList.remove('selected'); });
+  event.currentTarget.classList.add('selected');
+  if(!l1NicheSelected) {
+    l1NicheSelected = true;
+    addCash(reward, 'Niche Selected: ' + name);
+  }
+}
+
+function toggleLabModule(id, reward, name) {
+  var card = document.getElementById('lab-mod-' + id);
+  if(l1SelectedModules[id]) {
+    l1SelectedModules[id] = false;
+    card.classList.remove('active');
+    l1LabTotalCash -= reward;
+  } else {
+    l1SelectedModules[id] = true;
+    card.classList.add('active');
+    l1LabTotalCash += reward;
+    addCash(reward, 'Push-Button Module: ' + name);
+  }
+  document.getElementById('lab-total-val').textContent = '$' + l1LabTotalCash.toLocaleString() + ' CASH';
+}
+
+function completeLevel1() {
+  if(!l1NicheSelected) {
+    alert('Please select a target niche to proceed!');
+    return;
+  }
+  score += 100;
+  currentLevel = 2;
+  updateHUD();
+  updateL2Sim();
+  showScreen('screen-2');
+  showToast('Quest 1 Complete! +100 PTS');
+}
+
+/* Level 2 */
+function updateL2Sim() {
+  var price = parseInt(document.getElementById('l2-rng-price').value);
+  var clients = parseInt(document.getElementById('l2-rng-clients').value);
+  var reoffer = parseInt(document.getElementById('l2-rng-reoffer').value);
+
+  document.getElementById('l2-val-price').textContent = '$' + price.toLocaleString();
+  document.getElementById('l2-val-clients').textContent = clients + ' clients';
+  document.getElementById('l2-val-reoffer').textContent = '$' + reoffer.toLocaleString();
+
+  var monthly = price * clients;
+  var annual = (monthly * 12) + reoffer;
+
+  document.getElementById('l2-out-monthly').textContent = '$' + monthly.toLocaleString() + ' / mo';
+  document.getElementById('l2-out-annual').textContent = 'Annualized Revenue: $' + (monthly * 12).toLocaleString() + ' | Year 1 Total: $' + annual.toLocaleString();
+}
+
+function completeLevel2() {
+  var price = parseInt(document.getElementById('l2-rng-price').value);
+  var clients = parseInt(document.getElementById('l2-rng-clients').value);
+  var reoffer = parseInt(document.getElementById('l2-rng-reoffer').value);
+  var monthly = price * clients;
+
+  score += 100;
+  addCash(monthly + reoffer, 'Quest 2 Revenue Locked');
+  currentLevel = 3;
+  updateHUD();
+  updateL3Sim();
+  showScreen('screen-3');
+}
+
+/* Level 3 */
+function updateL3Sim() {
+  var spend = parseInt(document.getElementById('l3-rng-spend').value);
+  var costPerCall = parseInt(document.getElementById('l3-rng-costpercall').value);
+  var closeRate = parseInt(document.getElementById('l3-rng-closerate').value) / 100;
+
+  document.getElementById('l3-val-spend').textContent = '$' + spend.toLocaleString();
+  document.getElementById('l3-val-costpercall').textContent = '$' + costPerCall;
+  document.getElementById('l3-val-closerate').textContent = (closeRate * 100) + '%';
+
+  var callsBooked = Math.floor(spend / costPerCall);
+  var closedClients = Math.floor(callsBooked * closeRate);
+  var grossRevenue = closedClients * 5000;
+  var roas = (grossRevenue / spend).toFixed(2);
+
+  document.getElementById('l3-out-roas').textContent = roas + 'x ROAS';
+  document.getElementById('l3-out-details').textContent = 'Calls Booked: ' + callsBooked + ' | Closed Clients: ' + closedClients + ' | Spend: $' + spend.toLocaleString() + ' | Gross Revenue: $' + grossRevenue.toLocaleString();
+}
+
+function completeLevel3() {
+  var spend = parseInt(document.getElementById('l3-rng-spend').value);
+  var costPerCall = parseInt(document.getElementById('l3-rng-costpercall').value);
+  var closeRate = parseInt(document.getElementById('l3-rng-closerate').value) / 100;
+  var netCash = Math.floor(spend / costPerCall) * closeRate * 5000;
+
+  score += 100;
+  addCash(netCash, 'Quest 3 Net Ad Cash');
+  currentLevel = 4;
+  updateHUD();
+  showScreen('screen-4');
+}
+
+/* Level 4 */
+var l4BattleDone = false;
+
+function answerL4Battle(id, pts, reward) {
+  document.querySelectorAll('#l4-options .quest-opt').forEach(function(o){ o.classList.remove('selected','correct','wrong'); });
+  var card = event.currentTarget;
+  card.classList.add('selected');
+
+  if(id === 1) {
+    card.classList.add('correct');
+    addCash(reward, 'Diagnostic Close Win!');
+    l4BattleDone = true;
+    document.getElementById('btn-l4-next').style.display = 'inline-flex';
+  } else {
+    card.classList.add('wrong');
+    showToast('❌ Incorrect! Discounting weakens your offer authority!');
+  }
+}
+
+function completeLevel4() {
+  if(!l4BattleDone) {
+    alert('Please choose the correct objection handling response to proceed!');
+    return;
+  }
+  score += 100;
+  currentLevel = 5;
+  updateHUD();
+  showScreen('screen-5');
+}
+
+/* Level 5 & Complete Game */
+function completeGame() {
+  score = 500;
+  addCash(16400000, '$16.4M Exit Jackpot');
+  currentLevel = 5;
+  updateHUD();
+  clearInterval(timerInterval);
+
+  document.getElementById('final-score').textContent = score + ' / 500 PTS';
+  document.getElementById('final-cash-out').textContent = 'Total Career Cash Generated: $' + cash.toLocaleString();
+  showScreen('screen-final');
+}
+
+function restartGame() {
+  score = 0;
+  cash = 0;
+  currentLevel = 0;
+  timerSecs = 1200;
+  timerRunning = false;
+  l1NicheSelected = false;
+  l1LabTotalCash = 0;
+  l1SelectedModules = {};
+  clearInterval(timerInterval);
+  updateHUD();
+  document.getElementById('hud-timer').textContent = '20:00';
+  document.getElementById('hud-timer').classList.remove('danger');
+  showScreen('screen-0');
+}
+
+/* 🤖 DAEMON CHATBOT SYSTEM */
+function toggleDaemonChat() {
+  var win = document.getElementById('daemon-chat-window');
+  win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+}
+
+function sendChip(txt) {
+  document.getElementById('daemon-in').value = txt;
+  sendDaemonMsg();
+}
+
+function handleDaemonKey(e) {
+  if(e.key === 'Enter') sendDaemonMsg();
+}
+
+function sendDaemonMsg() {
+  var input = document.getElementById('daemon-in');
+  var txt = input.value.trim();
+  if(!txt) return;
+
+  var container = document.getElementById('daemon-msg-container');
+  var uMsg = document.createElement('div');
+  uMsg.className = 'msg-bubble msg-user';
+  uMsg.textContent = txt;
+  container.appendChild(uMsg);
+
+  input.value = '';
+  container.scrollTop = container.scrollHeight;
+
+  setTimeout(function(){
+    var dMsg = document.createElement('div');
+    dMsg.className = 'msg-bubble msg-daemon';
+    dMsg.innerHTML = getDaemonAnswer(txt.toLowerCase());
+    container.appendChild(dMsg);
+    container.scrollTop = container.scrollHeight;
+  }, 400);
+}
+
+function getDaemonAnswer(q) {
+  if(q.includes('bleeding neck') || q.includes('problem')) {
+    return '🩸 <strong>Bleeding Neck Problem:</strong> A problem so severe and urgent that the prospect MUST solve it immediately. If someone has a knife in their neck, they don\'t ask for a discount on the $10,000 cure!';
+  } else if(q.includes('i help') || q.includes('formula') || q.includes('niche')) {
+    return '🎯 <strong>"I Help" Formula:</strong> <em>"I help [X] to [Y] by [Z]."</em> Example: "I help losing traders to become profitable by sharing my mechanical rule-based strategies."';
+  } else if(q.includes('4 w') || q.includes('freedom') || q.includes('ceo')) {
+    return '👑 <strong>The 4 Ws of CEO Freedom:</strong><br>1. <strong>WHAT</strong><br>2. <strong>WHEN</strong><br>3. <strong>WHERE</strong><br>4. <strong>WITH WHOM</strong>';
+  } else if(q.includes('objection') || q.includes('expensive') || q.includes('close')) {
+    return '🔥 <strong>Handling "It\'s Too Expensive":</strong> Re-anchor to the prospect\'s pain! Point out the ongoing cost of inaction.';
+  } else if(q.includes('push button') || q.includes('solution') || q.includes('product')) {
+    return '🚀 <strong>Push-Button Solution:</strong> Remove writing, graphic design, and technical friction by providing done-for-you templates and assets.';
+  } else {
+    return '💡 <strong>$10M Daemon Insight:</strong> "Learn or identify a high-value skill. Package it up. Attract interest. Sell it!" Check out the <em>Write Your Offer Studio</em> tab to build your offer right now!';
+  }
+}
+
+// Initial Sim Run
+updateL2Sim();
+</script>
+</body>
+</html>
